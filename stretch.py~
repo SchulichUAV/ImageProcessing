@@ -1,0 +1,54 @@
+import numpy as np
+import cv2
+import sys
+
+imgInName = 'IMAG0018.JPG'
+img = cv2.imread(imgInName, cv2.IMREAD_COLOR)
+
+
+if img is None:
+    exitString = "No file named '" + imgInName + "' was found."
+    sys.exit(exitString)
+
+
+cv2.namedWindow('image', cv2.WINDOW_NORMAL)
+cv2.imshow('image',img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+
+print	"Image input:"
+print " name: ", imgInName
+print " rows: ", img.shape[0]
+print " columns: ", img.shape[1]
+print " channels: ", img.shape[2]
+
+inCenter = [0,0]
+inCenter[0] = img.shape[0]/2
+inCenter[1] = img.shape[1]/2
+
+imgOut = img
+
+for i in range(0, img.shape[0]):
+    for j in range(0, img.shape[1]):
+        imgOut[i,j] = img + 3;
+
+imgOutName = 'OutputStretch.png'
+print	"Image output:"
+print " name: ", imgOutName
+print " rows: ", imgOut.shape[0]
+print " columns: ", imgOut.shape[1]
+print " channels: ", imgOut.shape[2]
+cv2.imwrite(imgOutName, img)
+
+
+
+
+
+def showImage(image):
+    cv2.namedWindow('image', cv2.WINDOW_NORMAL)
+    cv2.imshow('image',image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    return
+    
