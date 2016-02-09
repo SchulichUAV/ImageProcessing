@@ -17,8 +17,7 @@ images = glob.glob('*.jpg')
 
 for fname in images:
     img = cv2.imread(fname)
-    smol = cv2.resize(img, (0,0), fx = 1, fy = 1)
-    gray = cv2.cvtColor(smol,cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     grid = (7,7)
 
     # Find the chess board corners
@@ -34,37 +33,45 @@ for fname in images:
         imgpoints.append(corners)
 
             # Draw and display the corners
-        cv2.drawChessboardCorners(smol, grid, corners,ret)
+        cv2.drawChessboardCorners(img, grid, corners,ret)
+        smol = cv2.resize(img, (0,0), fx = 0.4, fy = 0.4)
         cv2.imshow('thesight',smol)
     
     print ("Calibrate? Y / N")
 
-
-
     if cv2.waitKey(0) == ord('y'):
         print ("Calibrating.")
         test = gray.shape[::-1]
-        print ("objpoints: ", objpoints, len(objpoints[0]))
-        print ("imgpoints: ", imgpoints, len(imgpoints[0]))
         ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
        
+        #print ('ret:',ret,'mtx',mtx,'dist',dist,'rvecs',rvecs,'tvecs',tvecs)
         h, w = gray.shape[:2]
         newcameramtx, roi = cv2.getOptimalNewCameraMatrix(mtx,dist,(w,h),1,(w,h))
-        print (newcameramtx,roi)
 
+        if 0: #error of the project, err -> 0 is better
+            imgpoints2 = []
+            jacob = []
+            print (objpoints)
+            imgpoints2, jacob = cv2.projectPoints(objpoints[0],rvecs[0],tvecs[0],mtx,dist)
+            err = cv2.norm(imgpoints[0],imgpoints2, cv2.NORM_L2)
+            print (err)
 
         if 1:
-            dst = cv2.undistort(smol, mtx, dist, None, newcameramtx)
+            dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
         else:
             mapx,mapy = cv2.initUndistortRectifyMap(mtx,dist,None,newcameramtx,(w,h),5)
             dst = cv2.remap(img,mapx,mapy,cv2.INTER_LINEAR)
         
         x,y,h,w = roi
-        cv2.imshow("undistort",dst)
+        dstsmol = cv2.resize(dst, (0,0), fx = 0.4, fy = 0.4)
+        cv2.imshow("undistort",dstsmol)
 
-        print ("Save Photo? Y /N")
-        if cv2.waitKey(0) == ord('y'):    
-            
-            cv2.imwrite('calibresult.png',dst)
+        print ("Crop? ROI is: ", roi)
+        if cv2.waitKey(0) == ord('y'):
+            dst = dst[y:y+h, x:x+w]
+            cv2.imshow("cropped",dst)
+            print ("Save Photo? Y /N")
+            if cv2.waitKey(0) == ord('y'):    
+                cv2.imwrite('calibresult.png',dst)
         cv2.destroyAllWindows()
 cv2.destroyAllWindows()
